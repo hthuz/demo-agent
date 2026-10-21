@@ -2,20 +2,28 @@
 
 import os
 from pathlib import Path
+from typing import Optional
 
 from agent.tools.base import Tool
+from agent.config import Config, get_config
 
 
 class FileReader(Tool):
     """Tool for reading file contents."""
 
-    def __init__(self, base_path: str = "."):
+    def __init__(self, base_path: Optional[str] = None, config: Optional[Config] = None):
         """Initialize FileReader.
 
         Args:
-            base_path: Base directory for file access (security constraint)
+            base_path: Base directory for file access (if None, reads from config)
+            config: Config instance (if None, uses global config)
         """
         super().__init__()
+
+        # Get configuration
+        if config is None:
+            config = get_config()
+
         self.name = "FileReader"
         self.description = (
             "Reads the contents of a file. Provide the file path relative to "
@@ -28,7 +36,8 @@ class FileReader(Tool):
                 "required": True,
             }
         }
-        self.base_path = Path(base_path).resolve()
+        self.base_path = Path(base_path or config.file_reader_base_path).resolve()
+        self.max_size = config.file_reader_max_size
 
     def execute(self, file_path: str = "", **kwargs) -> str:
         """Read and return file contents.
@@ -62,9 +71,8 @@ class FileReader(Tool):
                 content = f.read()
 
             # Limit output size for very large files
-            max_size = 10000  # characters
-            if len(content) > max_size:
-                content = content[:max_size] + f"\n\n[... truncated, file is too large ({len(content)} chars)]"
+            if len(content) > self.max_size:
+                content = content[:self.max_size] + f"\n\n[... truncated, file is too large ({len(content)} chars)]"
 
             return content
 

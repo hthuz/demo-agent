@@ -8,6 +8,7 @@ from agent.models.base import LLMBase
 from agent.tools.base import Tool, ToolRegistry
 from agent.tools import Calculator, FileReader, Directory, FinalAnswer
 from agent.react.prompts import ReActPromptTemplate
+from agent.config import Config, get_config
 
 
 class ReActAgent:
@@ -17,20 +18,26 @@ class ReActAgent:
         self,
         model: LLMBase,
         tools: Optional[List[Tool]] = None,
-        max_iterations: int = 10,
-        verbose: bool = True,
+        max_iterations: Optional[int] = None,
+        verbose: Optional[bool] = None,
+        config: Optional[Config] = None,
     ):
         """Initialize ReAct Agent.
 
         Args:
             model: LLM model instance
             tools: List of tools (if None, uses default tools)
-            max_iterations: Maximum number of reasoning iterations
-            verbose: Whether to print execution steps
+            max_iterations: Maximum number of reasoning iterations (if None, reads from config)
+            verbose: Whether to print execution steps (if None, reads from config)
+            config: Config instance (if None, uses global config)
         """
+        # Get configuration
+        if config is None:
+            config = get_config()
+
         self.model = model
-        self.max_iterations = max_iterations
-        self.verbose = verbose
+        self.max_iterations = max_iterations if max_iterations is not None else config.max_iterations
+        self.verbose = verbose if verbose is not None else config.verbose
 
         # Initialize tool registry
         self.tool_registry = ToolRegistry()

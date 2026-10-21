@@ -1,11 +1,11 @@
 """OpenAI model implementation."""
 
-import os
 from typing import Optional
 
 from openai import OpenAI
 
 from agent.models.base import LLMBase
+from agent.config import Config, get_config
 
 
 class OpenAIModel(LLMBase):
@@ -14,28 +14,35 @@ class OpenAIModel(LLMBase):
     def __init__(
         self,
         api_key: Optional[str] = None,
-        model: str = "gpt-4",
-        temperature: float = 0.7,
-        max_tokens: int = 2000,
+        model: Optional[str] = None,
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+        config: Optional[Config] = None,
     ):
         """Initialize OpenAI model.
 
         Args:
-            api_key: OpenAI API key (if None, reads from OPENAI_API_KEY env var)
-            model: Model name (default: gpt-4)
-            temperature: Sampling temperature (0.0-2.0)
-            max_tokens: Maximum tokens in response
+            api_key: OpenAI API key (if None, reads from config/env)
+            model: Model name (if None, reads from config)
+            temperature: Sampling temperature (if None, reads from config)
+            max_tokens: Maximum tokens in response (if None, reads from config)
+            config: Config instance (if None, uses global config)
         """
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
+        # Get configuration
+        if config is None:
+            config = get_config()
+
+        # Set parameters (explicit args override config)
+        self.api_key = api_key or config.openai_api_key
         if not self.api_key:
             raise ValueError(
                 "OpenAI API key not provided. Set OPENAI_API_KEY environment "
                 "variable or pass api_key parameter."
             )
 
-        self.model = model
-        self.temperature = temperature
-        self.max_tokens = max_tokens
+        self.model = model or config.model_name
+        self.temperature = temperature if temperature is not None else config.temperature
+        self.max_tokens = max_tokens if max_tokens is not None else config.max_tokens
         self.client = OpenAI(api_key=self.api_key)
 
     def generate(self, prompt: str, **kwargs) -> str:

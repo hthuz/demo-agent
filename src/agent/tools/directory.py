@@ -2,20 +2,28 @@
 
 import os
 from pathlib import Path
+from typing import Optional
 
 from agent.tools.base import Tool
+from agent.config import Config, get_config
 
 
 class Directory(Tool):
     """Tool for listing directory contents."""
 
-    def __init__(self, base_path: str = "."):
+    def __init__(self, base_path: Optional[str] = None, config: Optional[Config] = None):
         """Initialize Directory tool.
 
         Args:
-            base_path: Base directory for access (security constraint)
+            base_path: Base directory for access (if None, reads from config)
+            config: Config instance (if None, uses global config)
         """
         super().__init__()
+
+        # Get configuration
+        if config is None:
+            config = get_config()
+
         self.name = "Directory"
         self.description = (
             "Lists files and subdirectories in a directory. "
@@ -28,7 +36,7 @@ class Directory(Tool):
                 "required": False,
             }
         }
-        self.base_path = Path(base_path).resolve()
+        self.base_path = Path(base_path or config.directory_base_path).resolve()
 
     def execute(self, path: str = ".", **kwargs) -> str:
         """List directory contents.

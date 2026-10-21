@@ -30,10 +30,45 @@ pip install -e .
 
 ## 配置
 
-创建 `.env` 文件：
+创建 `.env` 文件来配置 Agent：
 
 ```bash
+# 必需配置
 OPENAI_API_KEY=your-openai-api-key
+
+# LLM 模型配置
+MODEL_NAME=gpt-4                    # 可选: gpt-4, gpt-3.5-turbo 等
+TEMPERATURE=0.7                     # 可选: 0.0-2.0，控制输出随机性
+MAX_TOKENS=2000                     # 可选: 最大生成 token 数
+
+# Agent 配置
+MAX_ITERATIONS=10                   # 可选: 最大循环次数
+VERBOSE=true                        # 可选: 是否显示详细输出
+
+# 工具配置
+FILE_READER_BASE_PATH=.             # 可选: FileReader 基础路径
+FILE_READER_MAX_SIZE=10000          # 可选: 最大文件读取字符数
+DIRECTORY_BASE_PATH=.               # 可选: Directory 基础路径
+```
+
+所有配置项都是可选的（除了 `OPENAI_API_KEY`），未设置时会使用默认值。
+
+### 配置优先级
+
+1. 显式传递的参数（最高优先级）
+2. 环境变量 / .env 文件
+3. 默认值（最低优先级）
+
+```python
+from agent.config import get_config
+from agent.models.openai_model import OpenAIModel
+
+# 使用配置文件中的值
+config = get_config()
+model = OpenAIModel(config=config)
+
+# 或者覆盖特定配置
+model = OpenAIModel(temperature=0.5)  # 覆盖 TEMPERATURE 配置
 ```
 
 ## 使用

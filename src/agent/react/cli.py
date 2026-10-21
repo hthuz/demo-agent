@@ -1,17 +1,15 @@
 """CLI interface for ReAct Agent."""
 
-import os
 import sys
 import argparse
-from pathlib import Path
 
-from dotenv import load_dotenv
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt
 
 from agent.models.openai_model import OpenAIModel
 from agent.react.agent import ReActAgent
+from agent.config import Config, get_config
 
 
 console = Console()
@@ -63,23 +61,26 @@ def run_interactive_mode():
     """Run interactive CLI mode."""
     print_welcome()
 
-    # Load environment variables
-    load_dotenv()
+    # Load configuration
+    config = get_config()
 
-    # Check for API key
-    if not os.getenv("OPENAI_API_KEY"):
-        console.print(
-            "[bold red]Error:[/bold red] OPENAI_API_KEY not found in environment variables.",
-            style="red"
-        )
-        console.print("Please create a .env file with your OpenAI API key.")
+    # Validate configuration
+    is_valid, errors = config.validate()
+    if not is_valid:
+        console.print("[bold red]Configuration Error:[/bold red]", style="red")
+        for error in errors:
+            console.print(f"  - {error}", style="red")
+        console.print("\nPlease check your .env file and environment variables.")
         sys.exit(1)
 
     # Initialize agent
     try:
-        model = OpenAIModel()
-        agent = ReActAgent(model=model, verbose=True)
-        console.print("✅ Agent initialized successfully!\n", style="green")
+        model = OpenAIModel(config=config)
+        agent = ReActAgent(model=model, config=config)
+        console.print("✅ Agent initialized successfully!", style="green")
+        console.print(f"   Model: {config.model_name}", style="dim")
+        console.print(f"   Temperature: {config.temperature}", style="dim")
+        console.print(f"   Max iterations: {config.max_iterations}\n", style="dim")
     except Exception as e:
         console.print(f"[bold red]Error initializing agent:[/bold red] {str(e)}")
         sys.exit(1)
@@ -126,21 +127,21 @@ def run_single_query(query: str):
     Args:
         query: User query to execute
     """
-    # Load environment variables
-    load_dotenv()
+    # Load configuration
+    config = get_config()
 
-    # Check for API key
-    if not os.getenv("OPENAI_API_KEY"):
-        console.print(
-            "[bold red]Error:[/bold red] OPENAI_API_KEY not found.",
-            style="red"
-        )
+    # Validate configuration
+    is_valid, errors = config.validate()
+    if not is_valid:
+        console.print("[bold red]Configuration Error:[/bold red]", style="red")
+        for error in errors:
+            console.print(f"  - {error}", style="red")
         sys.exit(1)
 
     # Initialize agent
     try:
-        model = OpenAIModel()
-        agent = ReActAgent(model=model, verbose=True)
+        model = OpenAIModel(config=config)
+        agent = ReActAgent(model=model, config=config)
     except Exception as e:
         console.print(f"[bold red]Error:[/bold red] {str(e)}")
         sys.exit(1)

@@ -1,27 +1,32 @@
 """Example usage of the ReAct Agent."""
 
-import os
-from dotenv import load_dotenv
-
 from agent.models.openai_model import OpenAIModel
 from agent.react.agent import ReActAgent
+from agent.config import get_config
 
 
 def main():
     """Run example queries."""
-    # Load environment variables
-    load_dotenv()
+    # Load and validate configuration
+    config = get_config()
+    is_valid, errors = config.validate()
 
-    # Check for API key
-    if not os.getenv("OPENAI_API_KEY"):
-        print("Error: OPENAI_API_KEY not found in environment variables.")
-        print("Please create a .env file with your OpenAI API key.")
+    if not is_valid:
+        print("Configuration Error:")
+        for error in errors:
+            print(f"  - {error}")
+        print("\nPlease create a .env file with your configuration.")
         return
 
-    # Initialize model and agent
+    # Initialize model and agent using config
     print("Initializing ReAct Agent...")
-    model = OpenAIModel(model="gpt-4")
-    agent = ReActAgent(model=model, verbose=True)
+    print(f"  Model: {config.model_name}")
+    print(f"  Temperature: {config.temperature}")
+    print(f"  Max Iterations: {config.max_iterations}")
+    print()
+
+    model = OpenAIModel(config=config)
+    agent = ReActAgent(model=model, config=config)
 
     # Example 1: Simple calculation
     print("\n" + "=" * 80)
