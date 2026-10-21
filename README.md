@@ -5,6 +5,7 @@
 ## 特性
 
 - ✅ 完整的 ReAct 循环实现
+- ✅ 支持多种 LLM 模型（OpenAI、DeepSeek）
 - ✅ 4 个内置工具（Calculator, FileReader, Directory, FinalAnswer）
 - ✅ 实时展示工具调用过程
 - ✅ CLI 交互界面
@@ -33,11 +34,17 @@ pip install -e .
 创建 `.env` 文件来配置 Agent：
 
 ```bash
-# 必需配置
-OPENAI_API_KEY=your-openai-api-key
+# 模型提供商配置（必需）
+# 目前仅支持: openai 或 deepseek
+MODEL_PROVIDER=openai
+
+# API 密钥（根据 MODEL_PROVIDER 选择对应的密钥）
+OPENAI_API_KEY=your-openai-api-key      # MODEL_PROVIDER=openai 时必需
+DEEPSEEK_API_KEY=your-deepseek-api-key  # MODEL_PROVIDER=deepseek 时必需
 
 # LLM 模型配置
-MODEL_NAME=gpt-4                    # 可选: gpt-4, gpt-3.5-turbo 等
+MODEL_NAME=gpt-4                    # OpenAI: gpt-4, gpt-3.5-turbo 等
+                                    # DeepSeek: deepseek-chat, deepseek-coder 等
 TEMPERATURE=0.7                     # 可选: 0.0-2.0，控制输出随机性
 MAX_TOKENS=2000                     # 可选: 最大生成 token 数
 
@@ -51,7 +58,10 @@ FILE_READER_MAX_SIZE=10000          # 可选: 最大文件读取字符数
 DIRECTORY_BASE_PATH=.               # 可选: Directory 基础路径
 ```
 
-所有配置项都是可选的（除了 `OPENAI_API_KEY`），未设置时会使用默认值。
+**重要说明：**
+- `MODEL_PROVIDER` 决定使用哪个 LLM 提供商，目前仅支持 `openai` 和 `deepseek`
+- 根据 `MODEL_PROVIDER` 的值，需要设置对应的 API Key
+- `MODEL_NAME` 需要与所选提供商兼容
 
 ### 配置优先级
 
@@ -87,6 +97,25 @@ uv run python -m agent.react.cli --query "计算 25 * 4"
 
 ### 代码调用
 
+#### 使用 Model Factory（推荐）
+
+```python
+from agent.react.agent import ReActAgent
+from agent.models.factory import create_model
+from agent.config import get_config
+
+config = get_config()
+
+# 根据 MODEL_PROVIDER 配置自动创建对应的模型
+model = create_model(config=config)
+
+agent = ReActAgent(model=model, config=config)
+result = agent.run("列出当前目录的文件，然后计算文件数量")
+print(result)
+```
+
+#### 显式使用 OpenAI 模型
+
 ```python
 from agent.react.agent import ReActAgent
 from agent.models.openai_model import OpenAIModel
@@ -96,6 +125,24 @@ agent = ReActAgent(model=model)
 
 result = agent.run("列出当前目录的文件，然后计算文件数量")
 print(result)
+```
+
+#### 显式使用 DeepSeek 模型
+
+```python
+from agent.react.agent import ReActAgent
+from agent.models.deepseek_model import DeepSeekModel
+
+# 使用 deepseek-chat 模型
+model = DeepSeekModel(model="deepseek-chat")
+agent = ReActAgent(model=model)
+
+result = agent.run("列出当前目录的文件，然后计算文件数量")
+print(result)
+
+# 或使用 deepseek-coder 处理编程任务
+model = DeepSeekModel(model="deepseek-coder")
+agent = ReActAgent(model=model)
 ```
 
 ## 可用工具

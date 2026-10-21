@@ -7,7 +7,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt
 
-from agent.models.openai_model import OpenAIModel
+from agent.models.factory import create_model
 from agent.react.agent import ReActAgent
 from agent.config import Config, get_config
 
@@ -75,9 +75,10 @@ def run_interactive_mode():
 
     # Initialize agent
     try:
-        model = OpenAIModel(config=config)
+        model = create_model(config=config)
         agent = ReActAgent(model=model, config=config)
         console.print("✅ Agent initialized successfully!", style="green")
+        console.print(f"   Provider: {config.model_provider}", style="dim")
         console.print(f"   Model: {config.model_name}", style="dim")
         console.print(f"   Temperature: {config.temperature}", style="dim")
         console.print(f"   Max iterations: {config.max_iterations}\n", style="dim")
@@ -140,7 +141,7 @@ def run_single_query(query: str):
 
     # Initialize agent
     try:
-        model = OpenAIModel(config=config)
+        model = create_model(config=config)
         agent = ReActAgent(model=model, config=config)
     except Exception as e:
         console.print(f"[bold red]Error:[/bold red] {str(e)}")

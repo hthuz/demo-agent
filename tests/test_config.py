@@ -13,9 +13,11 @@ class TestConfig:
     def test_config_defaults(self):
         """Test default configuration values."""
         with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}, clear=True):
-            config = Config()
+            config = Config(load_env=False)
 
             assert config.openai_api_key == "test-key"
+            assert config.deepseek_api_key is None
+            assert config.model_provider == "openai"
             assert config.model_name == "gpt-4"
             assert config.temperature == 0.7
             assert config.max_tokens == 2000
@@ -40,7 +42,7 @@ class TestConfig:
         }
 
         with patch.dict(os.environ, env_vars, clear=True):
-            config = Config()
+            config = Config(load_env=False)
 
             assert config.openai_api_key == "custom-key"
             assert config.model_name == "gpt-3.5-turbo"
@@ -69,13 +71,13 @@ class TestConfig:
 
         for env_value, expected in test_cases:
             with patch.dict(os.environ, {"OPENAI_API_KEY": "test", "VERBOSE": env_value}, clear=True):
-                config = Config()
+                config = Config(load_env=False)
                 assert config.verbose == expected, f"Failed for VERBOSE={env_value}"
 
     def test_config_validation_success(self):
         """Test successful configuration validation."""
         with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}, clear=True):
-            config = Config()
+            config = Config(load_env=False)
             is_valid, errors = config.validate()
 
             assert is_valid is True
@@ -84,7 +86,7 @@ class TestConfig:
     def test_config_validation_missing_api_key(self):
         """Test validation fails when API key is missing."""
         with patch.dict(os.environ, {}, clear=True):
-            config = Config()
+            config = Config(load_env=False)
             is_valid, errors = config.validate()
 
             assert is_valid is False
@@ -94,7 +96,7 @@ class TestConfig:
     def test_config_validation_invalid_temperature(self):
         """Test validation fails for invalid temperature."""
         with patch.dict(os.environ, {"OPENAI_API_KEY": "test", "TEMPERATURE": "3.0"}, clear=True):
-            config = Config()
+            config = Config(load_env=False)
             is_valid, errors = config.validate()
 
             assert is_valid is False
@@ -103,7 +105,7 @@ class TestConfig:
     def test_config_validation_invalid_max_tokens(self):
         """Test validation fails for invalid max_tokens."""
         with patch.dict(os.environ, {"OPENAI_API_KEY": "test", "MAX_TOKENS": "-10"}, clear=True):
-            config = Config()
+            config = Config(load_env=False)
             is_valid, errors = config.validate()
 
             assert is_valid is False
@@ -112,7 +114,7 @@ class TestConfig:
     def test_config_validation_invalid_max_iterations(self):
         """Test validation fails for invalid max_iterations."""
         with patch.dict(os.environ, {"OPENAI_API_KEY": "test", "MAX_ITERATIONS": "0"}, clear=True):
-            config = Config()
+            config = Config(load_env=False)
             is_valid, errors = config.validate()
 
             assert is_valid is False
@@ -124,7 +126,7 @@ class TestConfig:
             "TEMPERATURE": "5.0",
             "MAX_TOKENS": "-1",
         }, clear=True):
-            config = Config()
+            config = Config(load_env=False)
             is_valid, errors = config.validate()
 
             assert is_valid is False
@@ -138,7 +140,7 @@ class TestConfig:
             "MAX_TOKENS": "not-a-number",
             "MAX_ITERATIONS": "abc",
         }, clear=True):
-            config = Config()
+            config = Config(load_env=False)
 
             # Should fall back to defaults
             assert config.temperature == 0.7
@@ -166,7 +168,7 @@ class TestConfig:
     def test_config_repr(self):
         """Test Config string representation."""
         with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}, clear=True):
-            config = Config()
+            config = Config(load_env=False)
             repr_str = repr(config)
 
             assert "Config" in repr_str
@@ -175,3 +177,74 @@ class TestConfig:
             assert "10" in repr_str
             # API key should not be in repr
             assert "test-key" not in repr_str
+
+    def test_deepseek_api_key_from_env(self):
+        """Test DeepSeek API key from environment variable."""
+        with patch.dict(os.environ, {"DEEPSEEK_API_KEY": "deepseek-key"}, clear=True):
+            config = Config(load_env=False)
+            assert config.deepseek_api_key == "deepseek-key"
+
+    def test_both_api_keys(self):
+        """Test both OpenAI and DeepSeek API keys can coexist."""
+        with patch.dict(os.environ, {
+            "OPENAI_API_KEY": "openai-key",
+            "DEEPSEEK_API_KEY": "deepseek-key",
+        }, clear=True):
+            config = Config(load_env=False)
+            assert config.openai_api_key == "openai-key"
+            assert config.deepseek_api_key == "deepseek-key"
+
+    def test_model_provider_openai(self):
+        """Test MODEL_PROVIDER set to openai."""
+        with patch.dict(os.environ, {
+            "MODEL_PROVIDER": "openai",
+            "OPENAI_API_KEY": "test-key",
+        }, clear=True):
+            config = Config(load_env=False)
+            assert config.model_provider == "openai"
+
+    def test_model_provider_deepseek(self):
+        """Test MODEL_PROVIDER set to deepseek."""
+        with patch.dict(os.environ, {
+            "MODEL_PROVIDER": "deepseek",
+            "DEEPSEEK_API_KEY": "test-key",
+        }, clear=True):
+            config = Config(load_env=False)
+            assert config.model_provider == "deepseek"
+
+    def test_model_provider_case_insensitive(self):
+        """Test MODEL_PROVIDER is case insensitive."""
+        with patch.dict(os.environ, {
+            "MODEL_PROVIDER": "OpenAI",
+            "OPENAI_API_KEY": "test-key",
+        }, clear=True):
+            config = Config(load_env=False)
+            assert config.model_provider == "openai"
+
+    def test_validation_openai_requires_key(self):
+        """Test validation fails when using OpenAI without API key."""
+        with patch.dict(os.environ, {"MODEL_PROVIDER": "openai"}, clear=True):
+            config = Config(load_env=False)
+            is_valid, errors = config.validate()
+            assert is_valid is False
+            assert any("OPENAI_API_KEY" in error for error in errors)
+
+    def test_validation_deepseek_requires_key(self):
+        """Test validation fails when using DeepSeek without API key."""
+        with patch.dict(os.environ, {"MODEL_PROVIDER": "deepseek"}, clear=True):
+            config = Config(load_env=False)
+            is_valid, errors = config.validate()
+            assert is_valid is False
+            assert any("DEEPSEEK_API_KEY" in error for error in errors)
+
+    def test_validation_invalid_provider(self):
+        """Test validation fails for invalid MODEL_PROVIDER."""
+        with patch.dict(os.environ, {
+            "MODEL_PROVIDER": "invalid-provider",
+            "OPENAI_API_KEY": "test-key",
+        }, clear=True):
+            config = Config(load_env=False)
+            is_valid, errors = config.validate()
+            assert is_valid is False
+            assert any("MODEL_PROVIDER" in error and "openai" in error and "deepseek" in error
+                      for error in errors)

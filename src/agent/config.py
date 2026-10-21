@@ -13,19 +13,21 @@ from dotenv import load_dotenv
 class Config:
     """Central configuration class for the ReAct Agent."""
 
-    def __init__(self, env_file: Optional[str] = None):
+    def __init__(self, env_file: Optional[str] = None, load_env: bool = True):
         """Initialize configuration.
 
         Args:
             env_file: Path to .env file (if None, searches default locations)
+            load_env: Whether to load environment variables from .env file (default: True)
         """
         # Load environment variables
-        if env_file:
-            load_dotenv(env_file)
-        else:
-            # Try to load from common locations
-            load_dotenv()  # Load from current directory
-            load_dotenv(Path.home() / ".env")  # Load from home directory
+        if load_env:
+            if env_file:
+                load_dotenv(env_file)
+            else:
+                # Try to load from common locations
+                load_dotenv()  # Load from current directory
+                load_dotenv(Path.home() / ".env")  # Load from home directory
 
     # ============================================================================
     # LLM Configuration
@@ -35,6 +37,16 @@ class Config:
     def openai_api_key(self) -> Optional[str]:
         """OpenAI API key."""
         return os.getenv("OPENAI_API_KEY")
+
+    @property
+    def deepseek_api_key(self) -> Optional[str]:
+        """DeepSeek API key."""
+        return os.getenv("DEEPSEEK_API_KEY")
+
+    @property
+    def model_provider(self) -> str:
+        """LLM provider to use (openai or deepseek)."""
+        return os.getenv("MODEL_PROVIDER", "openai").lower()
 
     @property
     def model_name(self) -> str:
@@ -108,9 +120,17 @@ class Config:
         """
         errors = []
 
-        # Check required fields
-        if not self.openai_api_key:
-            errors.append("OPENAI_API_KEY is required but not set")
+        # Check required fields based on model provider
+        if self.model_provider not in ("openai", "deepseek"):
+            errors.append(
+                f"MODEL_PROVIDER must be 'openai' or 'deepseek', got '{self.model_provider}'"
+            )
+
+        if self.model_provider == "openai" and not self.openai_api_key:
+            errors.append("OPENAI_API_KEY is required when MODEL_PROVIDER is 'openai'")
+
+        if self.model_provider == "deepseek" and not self.deepseek_api_key:
+            errors.append("DEEPSEEK_API_KEY is required when MODEL_PROVIDER is 'deepseek'")
 
         # Validate ranges
         if not 0.0 <= self.temperature <= 2.0:
