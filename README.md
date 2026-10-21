@@ -1,0 +1,126 @@
+# ReAct Agent Demo
+
+一个最小可用的 ReAct Agent 实现，支持"思考 → 工具调用 → 观察 → 继续"的循环。
+
+## 特性
+
+- ✅ 完整的 ReAct 循环实现
+- ✅ 4 个内置工具（Calculator, FileReader, Directory, FinalAnswer）
+- ✅ 实时展示工具调用过程
+- ✅ CLI 交互界面
+- ✅ 单元测试覆盖
+
+## 架构
+
+```
+工具层 (Tools) ← 编排层 (ReAct Agent) → 模型层 (LLM)
+```
+
+详细架构见 [CLAUDE.md](CLAUDE.md)
+
+## 安装
+
+```bash
+# 使用 uv 安装依赖
+uv sync
+
+# 或使用 pip
+pip install -e .
+```
+
+## 配置
+
+创建 `.env` 文件：
+
+```bash
+OPENAI_API_KEY=your-openai-api-key
+```
+
+## 使用
+
+### CLI 交互模式
+
+```bash
+uv run python -m agent.react.cli
+```
+
+### 单次查询
+
+```bash
+uv run python -m agent.react.cli --query "计算 25 * 4"
+```
+
+### 代码调用
+
+```python
+from agent.react.agent import ReActAgent
+from agent.models.openai_model import OpenAIModel
+
+model = OpenAIModel()
+agent = ReActAgent(model=model)
+
+result = agent.run("列出当前目录的文件，然后计算文件数量")
+print(result)
+```
+
+## 可用工具
+
+1. **Calculator** - 数学计算
+   - 示例：`计算 (12 + 8) * 3`
+
+2. **FileReader** - 读取文件
+   - 示例：`读取 README.md 文件`
+
+3. **Directory** - 列出目录内容
+   - 示例：`列出当前目录的所有文件`
+
+4. **FinalAnswer** - 返回最终答案（Agent 自动调用）
+
+## 测试
+
+```bash
+# 运行所有测试
+uv run pytest
+
+# 运行测试并查看覆盖率
+uv run pytest --cov=src/agent --cov-report=html
+```
+
+## 示例对话
+
+```
+User: 计算 15 * 8，然后告诉我结果是否大于 100
+
+─────────────────────────────────────
+🤔 Thought: I need to calculate 15 * 8 first
+🔧 Action: Calculator
+📝 Input: {"math_expression": "15 * 8"}
+⏳ Executing...
+📊 Observation: 120
+─────────────────────────────────────
+
+🤔 Thought: Now I can compare 120 with 100
+🔧 Action: FinalAnswer
+📝 Input: {"answer": "15 * 8 = 120，结果大于 100"}
+✅ Final Answer: 15 * 8 = 120，结果大于 100
+```
+
+## 开发
+
+```bash
+# 安装开发依赖
+uv sync --extra dev
+
+# 运行测试
+uv run pytest
+
+# 代码格式化
+uv run black src/ tests/
+
+# 类型检查
+uv run mypy src/
+```
+
+## License
+
+MIT
