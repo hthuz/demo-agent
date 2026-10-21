@@ -112,7 +112,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 - `DEEPSEEK_API_KEY` - DeepSeek API 密钥（使用 DeepSeek 时必需）
 - `MODEL_NAME` - 模型名称
   - OpenAI: gpt-4, gpt-3.5-turbo, gpt-4-turbo 等
-  - DeepSeek: deepseek-chat, deepseek-coder 等
+  - DeepSeek: deepseek-flash, deepseek-v4-pro
 - `TEMPERATURE` - 温度参数（默认：0.7）
 - `MAX_TOKENS` - 最大 token 数（默认：2000）
 - `MAX_ITERATIONS` - 最大循环次数（默认：10）
@@ -200,14 +200,9 @@ config = get_config()
 # 初始化 DeepSeek 模型
 model = DeepSeekModel(
     config=config,
-    model="deepseek-chat",  # 或使用 "deepseek-coder" 处理编程任务
+    model="deepseek-flash",  # 或使用 "deepseek-v4-pro" 处理复杂任务
 )
 agent = ReActAgent(model=model, config=config)
-
-# 运行查询
-result = agent.run("计算 15 * 8 的结果")
-print(result)
-```
 
 # 运行查询
 result = agent.run("计算 15 * 8 的结果")

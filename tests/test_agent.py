@@ -170,3 +170,95 @@ class TestReActPromptTemplate:
 
         assert "Previous thought" in prompt
         assert "Continue" in prompt
+
+
+class TestConversationHistory:
+    """Test conversation history functionality."""
+
+    def test_conversation_history(self):
+        """Test that conversation history is maintained across multiple turns."""
+        mock_model = Mock(spec=LLMBase)
+        agent = ReActAgent(
+            model=mock_model,
+            max_iterations=5,
+            verbose=False,
+        )
+
+        # First turn
+        mock_model.generate.return_value = (
+            "Thought: Answer the greeting\n"
+            "Action: FinalAnswer\n"
+            'Action Input: {"answer": "Hello! How can I help you?"}'
+        )
+        result1 = agent.run("你好")
+
+        assert "Hello" in result1
+        assert len(agent.conversation_history) == 1
+        assert agent.conversation_history[0]["user"] == "你好"
+        assert "Hello" in agent.conversation_history[0]["assistant"]
+
+        # Second turn - should have access to first turn
+        mock_model.generate.return_value = (
+            "Thought: Recall previous conversation\n"
+            "Action: FinalAnswer\n"
+            'Action Input: {"answer": "You said: 你好"}'
+        )
+        result2 = agent.run("我刚才说了什么")
+
+        assert len(agent.conversation_history) == 2
+        assert agent.conversation_history[1]["user"] == "我刚才说了什么"
+
+    def test_clear_history(self):
+        """Test clearing conversation history."""
+        mock_model = Mock(spec=LLMBase)
+        agent = ReActAgent(
+            model=mock_model,
+            max_iterations=5,
+            verbose=False,
+        )
+
+        # Add some conversation
+        mock_model.generate.return_value = (
+            "Thought: Answer\n"
+            "Action: FinalAnswer\n"
+            'Action Input: {"answer": "Test"}'
+        )
+        agent.run("test question")
+
+        assert len(agent.conversation_history) == 1
+
+        # Clear history
+        agent.clear_history()
+        assert len(agent.conversation_history) == 0
+
+    def test_history_included_in_prompt(self):
+        """Test that conversation history is included in the prompt."""
+        mock_model = Mock(spec=LLMBase)
+        agent = ReActAgent(
+            model=mock_model,
+            max_iterations=5,
+            verbose=False,
+        )
+
+        # First turn
+        mock_model.generate.return_value = (
+            "Thought: Answer\n"
+            "Action: FinalAnswer\n"
+            'Action Input: {"answer": "First answer"}'
+        )
+        agent.run("First question")
+
+        # Second turn - check that history is in the prompt
+        mock_model.generate.return_value = (
+            "Thought: Answer\n"
+            "Action: FinalAnswer\n"
+            'Action Input: {"answer": "Second answer"}'
+        )
+        agent.run("Second question")
+
+        # Check that the second call included history
+        call_args = mock_model.generate.call_args[0][0]
+        assert "Previous conversation" in call_args
+        assert "First question" in call_args
+        assert "First answer" in call_args
+

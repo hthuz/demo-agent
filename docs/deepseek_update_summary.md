@@ -69,7 +69,7 @@ MODEL_PROVIDER=deepseek
 DEEPSEEK_API_KEY=your-deepseek-api-key-here
 
 # 配置模型名称
-MODEL_NAME=deepseek-chat
+MODEL_NAME=deepseek-flash
 TEMPERATURE=0.7
 MAX_TOKENS=2000
 ```
@@ -192,7 +192,7 @@ print(result)
 3. **模型名称**
    - `MODEL_NAME` 需要与所选提供商兼容
    - OpenAI: gpt-4, gpt-3.5-turbo 等
-   - DeepSeek: deepseek-chat, deepseek-coder 等
+   - DeepSeek: deepseek-flash, deepseek-v4-pro
 
 4. **Git 提交**
    - 按照项目规范，由用户手动执行 git commit 和 push

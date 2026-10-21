@@ -36,15 +36,15 @@ pip install -e .
 ```bash
 # 模型提供商配置（必需）
 # 目前仅支持: openai 或 deepseek
-MODEL_PROVIDER=openai
+MODEL_PROVIDER=deepseek
 
 # API 密钥（根据 MODEL_PROVIDER 选择对应的密钥）
 OPENAI_API_KEY=your-openai-api-key      # MODEL_PROVIDER=openai 时必需
 DEEPSEEK_API_KEY=your-deepseek-api-key  # MODEL_PROVIDER=deepseek 时必需
 
 # LLM 模型配置
-MODEL_NAME=gpt-4                    # OpenAI: gpt-4, gpt-3.5-turbo 等
-                                    # DeepSeek: deepseek-chat, deepseek-coder 等
+MODEL_NAME=deepseek-flash           # OpenAI: gpt-4, gpt-3.5-turbo 等
+                                    # DeepSeek: deepseek-flash, deepseek-v4-pro
 TEMPERATURE=0.7                     # 可选: 0.0-2.0，控制输出随机性
 MAX_TOKENS=2000                     # 可选: 最大生成 token 数
 
@@ -133,15 +133,15 @@ print(result)
 from agent.react.agent import ReActAgent
 from agent.models.deepseek_model import DeepSeekModel
 
-# 使用 deepseek-chat 模型
-model = DeepSeekModel(model="deepseek-chat")
+# 使用 deepseek-flash 模型（快速、经济）
+model = DeepSeekModel(model="deepseek-flash")
 agent = ReActAgent(model=model)
 
 result = agent.run("列出当前目录的文件，然后计算文件数量")
 print(result)
 
-# 或使用 deepseek-coder 处理编程任务
-model = DeepSeekModel(model="deepseek-coder")
+# 或使用 deepseek-v4-pro 处理复杂任务
+model = DeepSeekModel(model="deepseek-v4-pro")
 agent = ReActAgent(model=model)
 ```
 

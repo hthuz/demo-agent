@@ -24,7 +24,7 @@ class DeepSeekModel(LLMBase):
 
         Args:
             api_key: DeepSeek API key (if None, reads from config/env)
-            model: Model name (if None, reads from config, default: deepseek-chat)
+            model: Model name (if None, reads from config, default: deepseek-flash)
             temperature: Sampling temperature (if None, reads from config)
             max_tokens: Maximum tokens in response (if None, reads from config)
             config: Config instance (if None, uses global config)

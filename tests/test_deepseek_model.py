@@ -13,9 +13,9 @@ class TestDeepSeekModel:
 
     def test_init_with_explicit_api_key(self):
         """Test initialization with explicit API key."""
-        model = DeepSeekModel(api_key="test-key", model="deepseek-chat")
+        model = DeepSeekModel(api_key="test-key", model="deepseek-flash")
         assert model.api_key == "test-key"
-        assert model.model == "deepseek-chat"
+        assert model.model == "deepseek-flash"
 
     def test_init_from_config(self):
         """Test initialization from config."""
@@ -34,14 +34,14 @@ class TestDeepSeekModel:
 
     def test_init_custom_model_preserved(self):
         """Test that custom model names are preserved."""
-        model = DeepSeekModel(api_key="test-key", model="deepseek-coder")
-        assert model.model == "deepseek-coder"
+        model = DeepSeekModel(api_key="test-key", model="deepseek-v4-pro")
+        assert model.model == "deepseek-v4-pro"
 
     def test_init_parameters(self):
         """Test initialization with custom parameters."""
         model = DeepSeekModel(
             api_key="test-key",
-            model="deepseek-chat",
+            model="deepseek-flash",
             temperature=0.5,
             max_tokens=1000,
         )
@@ -124,11 +124,11 @@ class TestDeepSeekModel:
 
     def test_repr(self):
         """Test string representation."""
-        model = DeepSeekModel(api_key="test-key", model="deepseek-chat")
+        model = DeepSeekModel(api_key="test-key", model="deepseek-flash")
         repr_str = repr(model)
 
         assert "DeepSeekModel" in repr_str
-        assert "deepseek-chat" in repr_str
+        assert "deepseek-flash" in repr_str
 
     @patch("agent.models.deepseek_model.OpenAI")
     def test_client_initialized_with_correct_params(self, mock_openai_class):

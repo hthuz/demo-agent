@@ -57,6 +57,9 @@ class ReActAgent:
         if not self.tool_registry.get("FinalAnswer"):
             self.tool_registry.register(FinalAnswer())
 
+        # Conversation history for multi-turn dialogue
+        self.conversation_history: List[Dict[str, str]] = []
+
     def run(self, user_input: str) -> str:
         """Execute the ReAct loop for a user query.
 
@@ -68,10 +71,28 @@ class ReActAgent:
         """
         # Initialize
         tools_description = self.tool_registry.get_tools_description()
+
+        # Build prompt with conversation history
+        if self.conversation_history:
+            history_text = "\n\nPrevious conversation:\n"
+            for turn in self.conversation_history:
+                history_text += f"User: {turn['user']}\nAssistant: {turn['assistant']}\n"
+            history_text += f"\nCurrent question:\n"
+        else:
+            history_text = ""
+
         prompt = ReActPromptTemplate.format_system_prompt(
             tools_description=tools_description,
             user_input=user_input,
         )
+
+        # Insert conversation history before the current question
+        if history_text:
+            # Find where user input is in the prompt and insert history before it
+            prompt = prompt.replace(
+                f"Question: {user_input}",
+                f"{history_text}Question: {user_input}"
+            )
 
         history = []
         iteration = 0
@@ -80,9 +101,7 @@ class ReActAgent:
             iteration += 1
 
             if self.verbose:
-                print(f"\n{'='*60}")
-                print(f"Iteration {iteration}/{self.max_iterations}")
-                print(f"{'='*60}")
+                print(f"\n[Agent Step {iteration}/{self.max_iterations}]")
 
             # Generate LLM response
             if history:
@@ -153,6 +172,11 @@ class ReActAgent:
                 if self.verbose:
                     print(f"\n✅ Final Answer: {observation}")
                     print(f"{'='*60}\n")
+                # Save to conversation history
+                self.conversation_history.append({
+                    "user": user_input,
+                    "assistant": observation
+                })
                 return observation
 
             # Display observation
@@ -174,7 +198,16 @@ class ReActAgent:
         )
         if self.verbose:
             print(f"\n⚠️ {final_msg}")
+        # Save to conversation history even if incomplete
+        self.conversation_history.append({
+            "user": user_input,
+            "assistant": final_msg
+        })
         return final_msg
+
+    def clear_history(self):
+        """Clear conversation history."""
+        self.conversation_history = []
 
     def _parse_response(self, response: str) -> Tuple[str, str, str]:
         """Parse LLM response to extract Thought, Action, and Action Input.

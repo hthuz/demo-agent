@@ -25,7 +25,7 @@ def main():
     try:
         model = DeepSeekModel(
             config=config,
-            model="deepseek-chat",  # or "deepseek-coder" for coding tasks
+            model="deepseek-flash",  # or "deepseek-v4-pro" for complex tasks
         )
         print(f"✓ Model initialized: {model}")
         print()

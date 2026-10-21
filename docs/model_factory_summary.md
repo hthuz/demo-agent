@@ -65,7 +65,7 @@
 # 在 .env 中配置
 MODEL_PROVIDER=deepseek
 DEEPSEEK_API_KEY=your-key
-MODEL_NAME=deepseek-chat
+MODEL_NAME=deepseek-flash
 
 # 运行 CLI
 uv run python -m agent.react.cli
@@ -188,7 +188,7 @@ config = Config(load_env=False)
 
 1. ✅ **两个 LLM 提供商**
    - OpenAI (gpt-4, gpt-3.5-turbo 等)
-   - DeepSeek (deepseek-chat, deepseek-coder 等)
+   - DeepSeek (deepseek-flash, deepseek-v4-pro)
 
 2. ✅ **灵活的配置方式**
    - 通过 `MODEL_PROVIDER` 选择提供商

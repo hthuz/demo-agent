@@ -27,7 +27,7 @@ MODEL_PROVIDER=deepseek    # 使用 DeepSeek
   - 继承自 `LLMBase` 抽象基类
   - 兼容 OpenAI API 接口
   - 支持自定义 base_url
-  - 默认使用 `deepseek-chat` 模型
+  - 默认使用 `deepseek-flash` 模型
 
 ### 2. 测试文件
 - `tests/test_deepseek_model.py` - DeepSeek 模型完整测试套件
@@ -73,7 +73,7 @@ MODEL_PROVIDER=deepseek
 DEEPSEEK_API_KEY=your-deepseek-api-key-here
 
 # 配置模型名称
-MODEL_NAME=deepseek-chat
+MODEL_NAME=deepseek-flash
 ```
 
 ### 代码示例
@@ -114,7 +114,7 @@ config = get_config()
 # 创建 DeepSeek 模型实例
 model = DeepSeekModel(
     config=config,
-    model="deepseek-chat",  # 或 "deepseek-coder" 用于编程任务
+    model="deepseek-flash",  # 或 "deepseek-v4-pro" 用于复杂任务
 )
 
 # 创建 Agent 并运行
@@ -125,8 +125,8 @@ print(result)
 
 ### 支持的模型
 
-- `deepseek-chat` - 通用对话模型（默认）
-- `deepseek-coder` - 代码专用模型
+- `deepseek-flash` - 快速、经济的模型（推荐）
+- `deepseek-v4-pro` - 高性能模型，适合复杂任务
 - 其他 DeepSeek API 支持的模型名称
 
 ## 技术细节

@@ -73,12 +73,12 @@ class TestModelFactory:
         with patch.dict(os.environ, {
             "MODEL_PROVIDER": "deepseek",
             "DEEPSEEK_API_KEY": "test-key",
-            "MODEL_NAME": "deepseek-coder",
+            "MODEL_NAME": "deepseek-v4-pro",
         }, clear=True):
             config = Config(load_env=False)
             model = create_model(config=config)
             assert isinstance(model, DeepSeekModel)
-            assert model.model == "deepseek-coder"
+            assert model.model == "deepseek-v4-pro"
 
     def test_create_model_missing_api_key(self):
         """Test error when API key is missing for selected provider."""
