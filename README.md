@@ -76,12 +76,20 @@
 
 使用 uv（推荐）：
 ```bash
+# 安装基础依赖
 uv sync
+
+# 如果需要运行测试，安装开发依赖
+uv sync --extra dev
 ```
 
 或使用 pip：
 ```bash
+# 安装基础依赖
 pip install -e .
+
+# 如果需要运行测试，安装开发依赖
+pip install -e ".[dev]"
 ```
 
 ### 3. 配置环境变量
@@ -120,8 +128,15 @@ DIRECTORY_BASE_PATH=.               # 可选: Directory 基础路径
 
 ### 4. 验证安装
 
-运行测试：
+确保依赖已正确安装：
 ```bash
+# 使用 uv
+uv sync
+
+# 验证 Python 环境
+uv run python --version
+
+# 运行测试（可选）
 uv run pytest tests/ -v
 ```
 
